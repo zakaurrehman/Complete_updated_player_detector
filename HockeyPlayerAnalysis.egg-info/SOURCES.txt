@@ -1,0 +1,11 @@
+setup.py
+HockeyPlayerAnalysis.egg-info/PKG-INFO
+HockeyPlayerAnalysis.egg-info/SOURCES.txt
+HockeyPlayerAnalysis.egg-info/dependency_links.txt
+HockeyPlayerAnalysis.egg-info/entry_points.txt
+HockeyPlayerAnalysis.egg-info/requires.txt
+HockeyPlayerAnalysis.egg-info/top_level.txt
+src/__init__.py
+src/detector.py
+src/enhanced_tracker.py
+src/video.py
