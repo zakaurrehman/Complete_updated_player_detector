@@ -429,32 +429,59 @@ class PlayerDetector:
                     track['consecutive_frames'] = 1
 
     def get_player_stats(self, frame_number: int, fps: float = DEFAULT_CONFIG['video']['default_fps']) -> str:
-        """Get formatted player statistics with color grouping"""
+        """Get formatted player statistics with enhanced visual output"""
         # Calculate timestamp
         total_seconds = frame_number / fps
         minutes = int(total_seconds // 60)
         seconds = int(total_seconds % 60)
         timestamp = f"{minutes:02d}:{seconds:02d}"
 
-        # Get active players grouped by color
-        active_players_by_color = {}
+        # Get active players grouped by team
+        teams = {
+            'team1': [],  # White jersey team
+            'team2': []   # Black jersey team
+        }
+
+        # Track players by team
         for (number, color), data in self.player_tracking.items():
             if data['consecutive_frames'] >= 2:
-                if color not in active_players_by_color:
-                    active_players_by_color[color] = []
-                active_players_by_color[color].append(number)
+                if color in teams:
+                    teams[color].append(number)
 
-        # Format output
-        if active_players_by_color:
-            output_lines = [f"Time {timestamp} - Active Players:"]
-            for color in sorted(active_players_by_color.keys()):
-                players = sorted(active_players_by_color[color])
-                color_str = f"{color.title()} jersey:"
+        # Format output with enhanced visuals
+        output_lines = []
+        
+        # Add header only at the start
+        if timestamp == "00:00":
+            output_lines.append("╔════════════════════════════════════════════════════════════╗")
+            output_lines.append("║                 Starting video analysis...                 ║")
+            output_lines.append("╚════════════════════════════════════════════════════════════╝")
+            output_lines.append("")
+
+        # Add timestamp header
+        output_lines.append(f"Time {timestamp} - {timestamp + ':30'} - Active Players:")
+        output_lines.append("─" * 60)  # Separator line
+
+        # Team labels with better formatting
+        labels = {
+            'team2': 'Black jersey:',
+            'team1': 'White jersey:'
+        }
+
+        # Always show teams in consistent order (Black first, then White)
+        for team in ['team2', 'team1']:
+            players = teams[team]
+            if players:  # Only show teams with active players
+                players = sorted(players)
+                label = labels[team]
                 players_str = ", ".join(f"#{num}" for num in players)
-                output_lines.append(f"{color_str.ljust(15)} {players_str}")
-            return "\n".join(output_lines)
-        else:
-            return f"Time {timestamp} - No active players detected"
+                # Add indent and ensure consistent spacing
+                output_lines.append(f"   {label.ljust(15)} {players_str}")
+
+        # Add spacing between timeframes
+        output_lines.append("")  # Empty line for separation
+
+        return "\n".join(output_lines)
 
     def get_detection_stats(self) -> Dict:
         """Get detection statistics"""

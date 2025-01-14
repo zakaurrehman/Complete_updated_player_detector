@@ -27,6 +27,7 @@ class HockeyAnalysisGUI:
         
         # Setup GUI components
         self.setup_gui()
+        self.setup_text_tags()
         
     def setup_gui(self):
         """Setup main GUI components"""
@@ -40,7 +41,7 @@ class HockeyAnalysisGUI:
         self.browse_btn = ttk.Button(file_frame, text="Browse", command=self.browse_file)
         self.browse_btn.pack(side=tk.RIGHT)
         
-        # Progress bar
+        # Progress section
         progress_frame = ttk.LabelFrame(self.root, text="Progress", padding="5")
         progress_frame.pack(fill=tk.X, padx=5, pady=5)
         
@@ -54,11 +55,20 @@ class HockeyAnalysisGUI:
         self.status_label = ttk.Label(progress_frame, text="Ready")
         self.status_label.pack()
         
-        # Output text
+        # Output section with enhanced text display
         output_frame = ttk.LabelFrame(self.root, text="Analysis Results", padding="5")
         output_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         
-        self.output_text = scrolledtext.ScrolledText(output_frame, height=20)
+        # Configure output text with monospace font and proper width
+        self.output_text = scrolledtext.ScrolledText(
+            output_frame,
+            height=20,
+            width=80,
+            font=('Consolas', 10),
+            wrap=tk.NONE,
+            background='white',
+            foreground='black'
+        )
         self.output_text.pack(fill=tk.BOTH, expand=True)
         
         # Control buttons
@@ -78,6 +88,45 @@ class HockeyAnalysisGUI:
             command=self.clear_output
         )
         self.clear_btn.pack(side=tk.LEFT, padx=5)
+
+    def setup_text_tags(self):
+        """Setup enhanced text tags for better formatting"""
+        # Header style with bold font and center alignment
+        self.output_text.tag_configure('header', 
+            font=('Consolas', 12, 'bold'),
+            justify='center',
+            spacing1=10,
+            spacing3=10
+        )
+        
+        # Time style with bold and extra spacing
+        self.output_text.tag_configure('time', 
+            font=('Consolas', 11, 'bold'),
+            spacing1=5,
+            spacing3=5
+        )
+        
+        # Separator style
+        self.output_text.tag_configure('separator', 
+            font=('Consolas', 10),
+            spacing3=3
+        )
+        
+        # Team styles with appropriate spacing
+        self.output_text.tag_configure('black_team', 
+            font=('Consolas', 10),
+            spacing1=3,
+            lmargin1=30,
+            lmargin2=30
+        )
+        
+        self.output_text.tag_configure('white_team', 
+            font=('Consolas', 10),
+            spacing1=3,
+            spacing3=10,
+            lmargin1=30,
+            lmargin2=30
+        )
         
     def browse_file(self):
         """Open file dialog to select video"""
@@ -97,8 +146,33 @@ class HockeyAnalysisGUI:
         self.root.update_idletasks()
         
     def add_output(self, message):
-        """Add message to output text area"""
-        self.output_text.insert(tk.END, message + "\n")
+        """Add formatted message to output text area with enhanced visuals"""
+        lines = message.splitlines()
+        for line in lines:
+            if "Starting video analysis" in line:
+                # Enhanced header with double-line box
+                self.output_text.insert(tk.END, "╔══════════════════════════════════════════════════════════╗\n", 'header')
+                self.output_text.insert(tk.END, "║              Starting video analysis...                  ║\n", 'header')
+                self.output_text.insert(tk.END, "╚══════════════════════════════════════════════════════════╝\n\n", 'header')
+            elif line.startswith("Time"):
+                # Enhanced timestamp with underline
+                self.output_text.insert(tk.END, f"{line}:\n", 'time')
+                self.output_text.insert(tk.END, "▔" * 60 + "\n", 'separator')
+            elif "Black jersey:" in line:
+                # Format team information with proper indentation and alignment
+                parts = line.split(":")
+                if len(parts) == 2:
+                    label = parts[0].strip()
+                    numbers = parts[1].strip()
+                    self.output_text.insert(tk.END, f"{label}:    {numbers}\n", 'black_team')
+            elif "White jersey:" in line:
+                # Format team information with proper indentation and alignment
+                parts = line.split(":")
+                if len(parts) == 2:
+                    label = parts[0].strip()
+                    numbers = parts[1].strip()
+                    self.output_text.insert(tk.END, f"{label}:    {numbers}\n", 'white_team')
+
         self.output_text.see(tk.END)
         self.root.update_idletasks()
         
@@ -140,7 +214,6 @@ class HockeyAnalysisGUI:
             
             # Redirect stdout to capture print statements
             import io
-            import sys
             stdout = sys.stdout
             output_buffer = io.StringIO()
             sys.stdout = output_buffer
